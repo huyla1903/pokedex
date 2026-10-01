@@ -23,10 +23,15 @@ export class Cache {
 
   get<T>(key: string) {
     const entry = this.#cache.get(key);
-    if (entry !== undefined) {
-      return entry.val as T;
+    if (entry === undefined) {
+      return undefined;
     }
-    return undefined;
+    // expired entries may not have been reaped yet
+    if (Date.now() - entry.createdAt > this.#interval) {
+      this.#cache.delete(key);
+      return undefined;
+    }
+    return entry.val as T;
   }
 
   #startReapLoop() {
